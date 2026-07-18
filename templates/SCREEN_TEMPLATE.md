@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Placeholder template for documenting a screen or view specification.
+Reusable placeholder template for documenting a screen or view specification before implementation.
 
 ## Status
 
@@ -14,5 +14,5 @@ Placeholder.
 
 ## TODO
 
-- Define screen purpose and states.
-- Add layout and behavior notes.
+- Define screen purpose, scope, and user intent.
+- Document layout, states, and behavior notes.
