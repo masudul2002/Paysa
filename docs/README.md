@@ -16,7 +16,8 @@ It is the primary entry point for repository documentation, governance, and plan
 2. Read [AI Rules](../.ai/AI_RULES.md) for assistant behavior and repository constraints.
 3. Read [Documentation Guide](DOCUMENTATION_GUIDE.md) for documentation standards and update policy.
 4. Review [Documentation Status](DOCUMENT_STATUS.md) for the active document inventory.
-5. Follow the numbered documents in this folder for topic-specific details.
+5. Read [Product Requirements Document](02_Product_Requirements_Document.md) for the business foundation.
+6. Follow the numbered documents in this folder for topic-specific details.
 
 ## Documentation Rules
 
