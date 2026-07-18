@@ -1,0 +1,15 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  placeholder:
+    name: Placeholder CI Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "CI workflow placeholder"

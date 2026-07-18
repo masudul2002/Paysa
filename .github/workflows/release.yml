@@ -1,0 +1,14 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  placeholder:
+    name: Placeholder Release Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Release workflow placeholder"
