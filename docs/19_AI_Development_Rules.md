@@ -40,4 +40,9 @@ Covers documentation-first workflows, approval boundaries, code generation restr
 
 ## Changelog
 - 2026-07-18: Created AI development rules.
+## Cross References
 
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

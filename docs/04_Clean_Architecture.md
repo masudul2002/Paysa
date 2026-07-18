@@ -39,4 +39,9 @@ Covers conceptual layers, ownership boundaries, dependency direction, and rules 
 
 ## Changelog
 - 2026-07-18: Created clean architecture guidance.
+## Cross References
 
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

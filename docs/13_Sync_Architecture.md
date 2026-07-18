@@ -41,4 +41,9 @@ Covers sync assumptions, identity, change tracking, conflicts, privacy, and user
 
 ## Changelog
 - 2026-07-18: Created future sync architecture.
+## Cross References
 
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

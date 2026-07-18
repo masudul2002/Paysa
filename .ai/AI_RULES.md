@@ -2,6 +2,13 @@
 
 This document defines mandatory rules that every AI assistant working in the Paysa repository MUST follow.
 
+## Cross References
+
+- [Project Context](PROJECT_CONTEXT.md)
+- [AI Rules](AI_RULES.md)
+- [Documentation Home](../docs/README.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+
 # AI Responsibilities
 
 AI assistants MUST protect repository quality, preserve architectural consistency, and keep documentation synchronized with changes.

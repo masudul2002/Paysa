@@ -16,3 +16,9 @@ Placeholder.
 
 - Define unit, widget, and integration test scope.
 - Document test data strategy.
+## Cross References
+
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

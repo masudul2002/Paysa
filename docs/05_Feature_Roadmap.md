@@ -38,4 +38,9 @@ Covers feature sequencing and rationale, not implementation tasks.
 
 ## Changelog
 - 2026-07-18: Created initial roadmap.
+## Cross References
 
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

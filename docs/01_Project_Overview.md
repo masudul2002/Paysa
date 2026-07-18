@@ -42,4 +42,9 @@ Paysa is an offline-first personal finance manager for tracking income, expenses
 
 ## Changelog
 - 2026-07-18: Created initial project overview.
+## Cross References
 
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

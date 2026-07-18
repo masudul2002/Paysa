@@ -117,6 +117,12 @@ Important references:
 - [Security](SECURITY.md)
 - [Support](SUPPORT.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Documentation Home](docs/README.md)
+- [Documentation Guide](docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Status](docs/DOCUMENT_STATUS.md)
+- [Project Context](.ai/PROJECT_CONTEXT.md)
+- [AI Rules](.ai/AI_RULES.md)
+- [Prompts](prompts/)
 
 Additional planning and architecture notes live in the [docs/](docs/) directory.
 

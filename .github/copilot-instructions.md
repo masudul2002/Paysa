@@ -89,3 +89,9 @@ It uses Material 3 as the primary design system.
 - Never generate unnecessary code
 - Prefer maintainability over speed
 - Always ask before changing architecture
+## Cross References
+
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

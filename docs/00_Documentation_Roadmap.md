@@ -27,4 +27,9 @@ Define how the documentation matures from planning through production.
 
 ## Changelog
 - 2026-07-18: Created roadmap for Documentation Pack v1.
+## Cross References
 
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

@@ -16,3 +16,9 @@ Placeholder.
 
 - Document release steps.
 - Add versioning and tagging rules.
+## Cross References
+
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)

@@ -16,3 +16,9 @@ Placeholder.
 
 - Add release verification steps.
 - Include tagging and announcement checks.
+## Cross References
+
+- [Project Context](../.ai/PROJECT_CONTEXT.md)
+- [AI Rules](../.ai/AI_RULES.md)
+- [Documentation Guide](../docs/DOCUMENTATION_GUIDE.md)
+- [Documentation Home](../docs/README.md)
