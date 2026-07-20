@@ -1,15 +1,16 @@
 # Feature Roadmap
 
 ## Purpose
-Prioritize features across MVP, post-MVP, beta, production, and future sync phases.
+Prioritize features across MVP, post-MVP, beta, production, and future sync phases across both Finance and Ledger domains.
 
 ## Scope
-Covers feature sequencing and rationale, not implementation tasks.
+Covers feature sequencing and rationale for both Personal Finance and Ledger modules, not implementation tasks.
 
 ## Objectives
 - Keep product scope deliberate.
-- Separate essential finance workflows from later enhancements.
+- Separate essential workflows from later enhancements.
 - Track sync-readiness without overcommitting to cloud behavior.
+- Balance Finance and Ledger domain priorities.
 
 ## Responsibilities
 - Product Manager owns roadmap priority.
@@ -17,19 +18,52 @@ Covers feature sequencing and rationale, not implementation tasks.
 - QA reviews release readiness for each phase.
 
 ## Key Decisions
-- MVP focuses on manual offline tracking and core summaries.
-- Post-MVP can add automation, import/export, and richer analytics.
+- MVP focuses on manual offline tracking for both Finance and Ledger domains.
+- Dashboard, Reports, and Search are built after core transaction workflows.
+- Budgets, Savings Goals, and Payment Reminders are post-MVP enhancements.
 - Cloud sync remains future scope until security and identity decisions are approved.
+- Ledger Notes and Attachments are post-MVP.
 
-## Open Questions
-- What is the first public release platform?
-- Which reports are essential for launch?
-- Should debt/loan tracking be included before production?
+## Phases
 
-## Future Improvements
-- User research-driven prioritization.
-- Roadmap scoring model.
-- Release burndown tracking.
+### Phase 1: Foundation (Current)
+- App shell, navigation, theming, DI, error handling, database
+- **Accounts** (Finance) — complete
+- **Categories** (Finance) — complete
+- **Transactions** (Finance) — complete (Income, Expense, Transfer)
+- Dashboard (Finance) — basic implementation
+
+### Phase 2: Ledger MVP
+- People (Customer / Supplier / Friend / Family)
+- Give Money
+- Receive Money
+- Opening Balance
+- Ledger History
+- Outstanding Balance
+
+### Phase 3: Finance Enhancement
+- Budgets
+- Savings Goals
+- Reports v1 (Spending by Category, Income vs Expense, Net Worth)
+- Payment Methods
+
+### Phase 4: Ledger Enhancement
+- Payment Reminders
+- Notes (Ledger)
+- Attachments
+- Share Statement
+
+### Phase 5: Cross-cutting
+- Search (unified across both domains)
+- Notifications (reminders, budget alerts, goal achievements)
+- Backup & Restore
+- Settings (full implementation)
+
+### Phase 6: Future
+- Cloud Sync (encrypted, user-initiated)
+- Statement sharing via messaging apps
+- Advanced reports and insights
+- Import/export (CSV, bank statements)
 
 ## References
 - `02_Product_Requirements_Document.md`

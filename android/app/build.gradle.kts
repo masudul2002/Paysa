@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.paysa"
+    namespace = "com.paysa.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +15,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.paysa"
+        applicationId = "com.paysa.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -27,8 +26,7 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Production signing must be configured before any Play Store release.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

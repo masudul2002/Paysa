@@ -1,0 +1,11 @@
+export 'domain/entities/person.dart';
+export 'domain/entities/person_defaults.dart';
+export 'domain/repositories/person_repository.dart';
+export 'domain/usecases/archive_person.dart';
+export 'domain/usecases/create_person.dart';
+export 'domain/usecases/delete_person.dart';
+export 'domain/usecases/get_people.dart';
+export 'domain/usecases/get_person_by_id.dart';
+export 'domain/usecases/restore_person.dart';
+export 'domain/usecases/update_person.dart';
+export 'domain/usecases/watch_people.dart';

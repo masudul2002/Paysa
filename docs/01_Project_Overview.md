@@ -4,10 +4,11 @@
 Define the product vision, context, principles, and boundaries for Paysa.
 
 ## Scope
-Paysa is an offline-first personal finance manager for tracking income, expenses, categories, accounts, budgets, and financial insight. Future cloud synchronization is planned but not part of the initial offline MVP.
+Paysa is an offline-first Finance & Ledger Platform for tracking personal finances (income, expenses, accounts, categories, budgets, goals, reports) and interpersonal financial transactions (giving/receiving money, ledger history, outstanding balances, payment reminders). Future cloud synchronization is planned but not part of the initial offline MVP.
 
 ## Objectives
 - Help users understand and control personal finances.
+- Track interpersonal financial relationships with clarity and accuracy.
 - Work reliably without network access.
 - Protect sensitive financial data.
 - Establish architecture that can later support secure synchronization.
@@ -21,19 +22,21 @@ Paysa is an offline-first personal finance manager for tracking income, expenses
 ## Key Decisions
 - Offline-first is mandatory.
 - Local data is the primary source of truth for MVP.
+- Finance and Ledger are two distinct domains within a single application.
 - Future sync must not compromise local-first usability.
 - Documentation Driven Development is required.
 
 ## Open Questions
 - Which regions and currencies are first-class launch targets?
-- Is multi-account budgeting required in MVP?
 - Will cloud sync require user accounts, anonymous backup, or both?
+- Should Ledger and Finance share the same accounts or use separate balance pools?
 
 ## Future Improvements
 - Multi-device sync.
-- Shared household budgets.
+- Shared household budgets and group ledger.
 - Import from bank statements or CSV files.
 - Advanced forecasting and insights.
+- Ledger statement sharing via messaging apps.
 
 ## References
 - `02_Product_Requirements_Document.md`
