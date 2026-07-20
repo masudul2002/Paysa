@@ -97,3 +97,4 @@ See [10_Data_Modeling.md#5-detailed-entity-specifications](10_Data_Modeling.md#5
 | 2026-07-20 | 3.0 | DB Architecture | Complete rewrite — full production database architecture in `10_Data_Modeling.md` |
 | 2026-07-20 | 3.1 | DB Architecture | Added PersonRecord schema (Collection ID `-4488016229524395338`). 20 fields including uuid, syncStatus, version, soft-delete. |
 | 2026-07-20 | 3.2 | DB Architecture | Completed Sprint 1 — PersonRecord verified. Indexes on `name` (unique) and `phone`. validate() method. SyncStatus enum. |
+| 2026-07-20 | 4.0 | DB Architecture | Added LedgerRecordSchema (ID `7969488079492419995`) and LedgerEntryRecordSchema (ID `-737622932812665416`). 10 entry types, proper indexes, validate() on both entities. |
