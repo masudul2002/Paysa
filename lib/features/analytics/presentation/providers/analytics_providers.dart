@@ -21,7 +21,7 @@ final dashboardSnapshotProvider = FutureProvider.autoDispose<DashboardSnapshot>(
   return ref.watch(analyticsEngineProvider).getDashboardSnapshot();
 });
 
-final cashFlowProvider = FutureProvider.autoDispose.family<CashFlowSummary, _DateRange>((ref, range) {
+final cashFlowProvider = FutureProvider.autoDispose.family<CashFlowSummary, DateRange>((ref, range) {
   return ref.watch(analyticsEngineProvider).getCashFlow(range.start, range.end);
 });
 
@@ -40,11 +40,11 @@ final topCategoriesProvider = FutureProvider.autoDispose<List<CategorySummary>>(
   );
 });
 
-class _DateRange {
-  const _DateRange(this.start, this.end);
+class DateRange {
+  const DateRange(this.start, this.end);
   final DateTime start;
   final DateTime end;
 
-  @override bool operator ==(Object o) => o is _DateRange && o.start == start && o.end == end;
+  @override bool operator ==(Object o) => o is DateRange && o.start == start && o.end == end;
   @override int get hashCode => Object.hash(start, end);
 }
