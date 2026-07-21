@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../domain/entities/auth_entities.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/validators/auth_validators.dart';
 import '../datasources/auth_local_datasource.dart';
 import '../datasources/auth_remote_datasource.dart';
 
@@ -29,8 +30,31 @@ final class AuthRepositoryImpl implements AuthRepository {
     return result;
   }
 
+  @override Future<AuthResult> signInWithProvider(AuthMethod method, {String? email, String? password, String? token}) async {
+    final result = await remote.signIn(method, email: email, password: password, token: token);
+    if (result.success && result.session != null) {
+      await local.saveSession(result.session!);
+      if (result.identity != null) await local.saveProfile(result.identity!);
+      _emit(AuthState(status: AuthStatus.authenticated, identity: result.identity, session: result.session, method: method));
+    }
+    return result;
+  }
+
   @override Future<AuthResult> signInWithEmail(String email, String password) async {
-    final result = await remote.signIn(AuthMethod.email, email: email, password: password);
+    // Validate email
+    final emailError = AuthValidators.validateEmail(email);
+    if (emailError != null) {
+      return AuthResult(success: false, errorMessage: AuthValidators.message(emailError));
+    }
+
+    // Validate password
+    final passError = AuthValidators.validatePassword(password);
+    if (passError != null) {
+      return AuthResult(success: false, errorMessage: AuthValidators.message(passError));
+    }
+
+    final normalized = AuthValidators.normalizeEmail(email);
+    final result = await remote.signIn(AuthMethod.email, email: normalized, password: password);
     if (result.success && result.session != null) {
       await local.saveSession(result.session!);
       if (result.identity != null) await local.saveProfile(result.identity!);
@@ -40,7 +64,26 @@ final class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override Future<AuthResult> signUp(String email, String password, {String? displayName}) async {
-    final result = await remote.signUp(email, password, displayName: displayName);
+    // Validate display name
+    final nameError = AuthValidators.validateDisplayName(displayName);
+    if (nameError != null) {
+      return AuthResult(success: false, errorMessage: AuthValidators.message(nameError));
+    }
+
+    // Validate email
+    final emailError = AuthValidators.validateEmail(email);
+    if (emailError != null) {
+      return AuthResult(success: false, errorMessage: AuthValidators.message(emailError));
+    }
+
+    // Validate password
+    final passError = AuthValidators.validatePassword(password);
+    if (passError != null) {
+      return AuthResult(success: false, errorMessage: AuthValidators.message(passError));
+    }
+
+    final normalized = AuthValidators.normalizeEmail(email);
+    final result = await remote.signUp(normalized, password, displayName: displayName);
     if (result.success && result.session != null) {
       await local.saveSession(result.session!);
       if (result.identity != null) await local.saveProfile(result.identity!);

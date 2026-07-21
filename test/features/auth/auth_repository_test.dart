@@ -45,10 +45,20 @@ void main() {
   });
 
   group('signInWithEmail', () {
-    test('signs in with credentials', () async {
-      final result = await repo.signInWithEmail('test@test.com', 'pass');
-      expect(result.success, true);
+    test('signs in with valid email and password', () async {
+      final result = await repo.signInWithEmail('test@test.com', 'password123');
+      expect(result.success, true, reason: 'Error: ${result.errorMessage}');
       expect(await repo.isAuthenticated(), true);
+    });
+
+    test('rejects invalid email format', () async {
+      final result = await repo.signInWithEmail('notanemail', 'password123');
+      expect(result.success, false);
+    });
+
+    test('rejects short password', () async {
+      final result = await repo.signInWithEmail('test@test.com', 'short');
+      expect(result.success, false);
     });
   });
 
