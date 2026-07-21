@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../features/accounts/data/models/account_record.dart';
 import '../../features/categories/data/models/category_record.dart';
 import '../../features/ledger/data/models/ledger_record.dart';
+import '../../features/payment_method/data/models/payment_method_record.dart';
 import '../../features/people/data/models/person_record.dart';
 import '../../features/transactions/data/models/transaction_record.dart';
 
@@ -21,6 +22,7 @@ final class PaysaDatabase {
         CategoryRecordSchema,
         LedgerRecordSchema,
         LedgerEntryRecordSchema,
+        PaymentMethodRecordSchema,
         PersonRecordSchema,
         TransactionRecordSchema,
       ],
