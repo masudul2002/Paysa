@@ -5,7 +5,16 @@ enum GoalType {
 }
 
 enum GoalPriority { low, medium, high }
-enum GoalStatus { notStarted, onTrack, behind, completed, archived }
+enum GoalStatus { notStarted, onTrack, behind, completed, archived;
+
+  String get label => switch (this) {
+    GoalStatus.notStarted => 'Not Started',
+    GoalStatus.onTrack => 'On Track',
+    GoalStatus.behind => 'Behind',
+    GoalStatus.completed => 'Completed',
+    GoalStatus.archived => 'Archived',
+  };
+}
 
 final class FinancialGoal {
   const FinancialGoal({

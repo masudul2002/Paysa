@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// AppShell provides the permanent scaffold and bottom navigation.
+/// AppShell provides the permanent scaffold and responsive navigation.
+///
+/// Mobile: BottomNavigationBar
+/// Tablet/Desktop: NavigationRail
 final class AppShell extends StatelessWidget {
   const AppShell({required this.child, super.key});
 
   final Widget child;
 
   static const _routes = <String>[
-    '/home',
-    '/accounts',
-    '/people',
-    '/transactions',
-    '/reports',
-    '/settings',
+    '/home',       // 0 — Dashboard
+    '/accounts',   // 1 — Accounts
+    '/people',     // 2 — People
+    '/transactions', // 3 — Transactions
+    '/reports',    // 4 — Reports
+    '/settings',   // 5 — Settings
   ];
 
   int _indexOfLocation(String location) {
@@ -21,11 +24,53 @@ final class AppShell extends StatelessWidget {
     return idx < 0 ? 0 : idx;
   }
 
+  void _navigate(BuildContext context, int idx) {
+    GoRouter.of(context).go(_routes[idx]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
     final currentIndex = _indexOfLocation(location);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= 600;
 
+    // Navigation items shared across both layouts
+    final navItems = <NavigationItem>[
+      NavigationItem(Icons.dashboard_outlined, Icons.dashboard, 'Home'),
+      NavigationItem(Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Accounts'),
+      NavigationItem(Icons.people_outlined, Icons.people, 'People'),
+      NavigationItem(Icons.swap_horiz_outlined, Icons.swap_horiz, 'Transactions'),
+      NavigationItem(Icons.pie_chart_outline_outlined, Icons.pie_chart_outline, 'Reports'),
+      NavigationItem(Icons.settings_outlined, Icons.settings, 'Settings'),
+    ];
+
+    if (isWide) {
+      // Tablet / Desktop layout with NavigationRail
+      return Scaffold(
+        body: SafeArea(
+          child: Row(
+            children: [
+              NavigationRail(
+                selectedIndex: currentIndex,
+                onDestinationSelected: (idx) => _navigate(context, idx),
+                labelType: NavigationRailLabelType.all,
+                minExtendedWidth: 180,
+                destinations: navItems.map((item) => NavigationRailDestination(
+                  icon: Icon(item.icon),
+                  selectedIcon: Icon(item.activeIcon),
+                  label: Text(item.label),
+                )).toList(),
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Mobile layout with BottomNavigationBar
     return Scaffold(
       body: SafeArea(child: child),
       bottomNavigationBar: Semantics(
@@ -34,39 +79,22 @@ final class AppShell extends StatelessWidget {
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           currentIndex: currentIndex,
-          onTap: (idx) {
-            final path = _routes[idx];
-            GoRouter.of(context).go(path);
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: Icon(Icons.account_balance_wallet),
-              label: 'Accounts',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people_outlined),
-              activeIcon: Icon(Icons.people),
-              label: 'People',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.swap_horiz_outlined),
-              activeIcon: Icon(Icons.swap_horiz),
-              label: 'Transactions',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.more_horiz_outlined),
-              activeIcon: Icon(Icons.more_horiz),
-              label: 'More',
-            ),
-          ],
+          onTap: (idx) => _navigate(context, idx),
+          items: navItems.map((item) => BottomNavigationBarItem(
+            icon: Icon(item.icon),
+            activeIcon: Icon(item.activeIcon),
+            label: item.label,
+          )).toList(),
         ),
       ),
     );
   }
+}
+
+/// Lightweight data holder for navigation items.
+final class NavigationItem {
+  const NavigationItem(this.icon, this.activeIcon, this.label);
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
 }

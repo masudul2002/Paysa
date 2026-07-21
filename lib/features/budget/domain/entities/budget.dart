@@ -1,6 +1,15 @@
 enum BudgetPeriod { weekly, monthly, quarterly, yearly, custom }
 
-enum BudgetStatus { safe, warning, exceeded, completed, archived }
+enum BudgetStatus { safe, warning, exceeded, completed, archived;
+
+  String get label => switch (this) {
+    BudgetStatus.safe => 'Safe',
+    BudgetStatus.warning => 'Warning',
+    BudgetStatus.exceeded => 'Exceeded',
+    BudgetStatus.completed => 'Completed',
+    BudgetStatus.archived => 'Archived',
+  };
+}
 
 final class Budget {
   const Budget({

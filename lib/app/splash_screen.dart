@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
       // Navigate shortly after animation finishes. Do not block startup.
       Future.delayed(DesignTokens.motionMedium, () {
         if (mounted) {
-          GoRouter.of(context).go('/home');
+          GoRouter.of(context).go('/onboarding');
         }
       });
     });

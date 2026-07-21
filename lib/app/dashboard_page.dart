@@ -1,15 +1,11 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/analytics/domain/entities/analytics_entities.dart';
 import '../features/analytics/presentation/providers/analytics_providers.dart';
-import '../features/accounts/presentation/widgets/account_form_sheet.dart';
-import '../features/transactions/presentation/widgets/transaction_form_sheet.dart';
 import '../shared/shared.dart';
 import 'theme/design_tokens.dart';
-import 'design/design_system.dart';
-import 'design/widgets/dashboard_cards.dart';
+import 'theme/app_colors.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -17,48 +13,57 @@ class DashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashAsync = ref.watch(dashboardSnapshotProvider);
-    final cashFlowAsync = ref.watch(cashFlowProvider(DateRange(
+    final cfAsync = ref.watch(cashFlowProvider(DateRange(
       DateTime.now().subtract(const Duration(days: 30)), DateTime.now(),
     )));
-    final outstandingAsync = ref.watch(outstandingSummaryProvider);
+    final oustandingAsync = ref.watch(outstandingSummaryProvider);
+    final pc = ref.watch(themeColorProvider);
+    final tt = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_greeting(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        title: Text(_greeting(), style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
         actions: [
           IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.person_outline), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
         ],
       ),
       body: SafeArea(
         child: dashAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => AppErrorWidget(title: 'Could not load', details: e.toString()),
+          loading: () => const _DashboardSkeleton(),
+          error: (e, _) => AppErrorWidget(title: 'Dashboard unavailable', details: e.toString()),
           data: (dash) => RefreshIndicator(
             onRefresh: () async { ref.invalidate(dashboardSnapshotProvider); },
             child: ListView(
               padding: const EdgeInsets.all(DesignTokens.space16),
               children: [
-                _BalanceCard(financial: dash.financial),
-                const SizedBox(height: DesignTokens.space20),
-                _QuickActionsBar(),
-                const SizedBox(height: DesignTokens.space24),
-                _InsightsRow(financial: dash.financial, month: dash.monthlyTrend),
-                const SizedBox(height: DesignTokens.space24),
-                Row(children: [
-                  Expanded(child: _CashFlowCard(cashFlowAsync: cashFlowAsync)),
-                  const SizedBox(width: DesignTokens.space12),
-                  Expanded(child: _OutstandingCard(outstandingAsync: outstandingAsync)),
-                ]),
-                const SizedBox(height: DesignTokens.space24),
-                _SectionTitle(title: 'Recent Activity'),
-                const SizedBox(height: DesignTokens.space12),
-                _RecentActivity(txs: dash.recentTransactions, receipts: dash.recentReceipts),
-                const SizedBox(height: DesignTokens.space24),
-                _SectionTitle(title: 'Top Categories', subtitle: 'This month'),
-                const SizedBox(height: DesignTokens.space12),
-                _TopCategories(dash: dash),
-                const SizedBox(height: DesignTokens.space32),
+                _BalanceCard(financial: dash.financial, pc: pc),
+                gap16,
+                _QuickActionsGrid(),
+                gap24,
+                _InsightTile(
+                  financial: dash.financial,
+                  months: dash.monthlyTrend,
+                  pc: pc,
+                  tt: tt,
+                ),
+                gap24,
+                _MiniSummaryRow(cfAsync: cfAsync, outstandingAsync: oustandingAsync, pc: pc, tt: tt),
+                gap24,
+                _RecentSection(
+                  title: 'Recent Activity',
+                  transactions: dash.recentTransactions,
+                  receipts: dash.recentReceipts,
+                  tt: tt,
+                  pc: pc,
+                ),
+                gap24,
+                _CategoriesSection(
+                  categories: dash.topCategories,
+                  tt: tt,
+                  pc: pc,
+                ),
+                gap32,
               ],
             ),
           ),
@@ -69,385 +74,343 @@ class DashboardPage extends ConsumerWidget {
 
   String _greeting() {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning ☀️';
-    if (h < 17) return 'Good afternoon 🌤️';
-    return 'Good evening 🌙';
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
   }
 }
 
 // ---------------------------------------------------------------------------
-// Balance Card (Section 2)
+// Constants
 // ---------------------------------------------------------------------------
 
-class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({required this.financial});
-  final FinancialSnapshot financial;
+const gap4 = SizedBox(height: 4);
+const gap8 = SizedBox(height: 8);
+const gap12 = SizedBox(height: 12);
+const gap16 = SizedBox(height: 16);
+const gap24 = SizedBox(height: 24);
+const gap32 = SizedBox(height: 32);
+
+// ---------------------------------------------------------------------------
+// Theme color provider
+// ---------------------------------------------------------------------------
+
+final themeColorProvider = Provider<PaysaColors>((ref) {
+  return const PaysaColors(
+    income: DesignTokens.income,
+    expense: DesignTokens.expense,
+    pending: DesignTokens.pending,
+    receivable: DesignTokens.receivable,
+    payable: DesignTokens.payable,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Loading skeleton
+// ---------------------------------------------------------------------------
+
+class _DashboardSkeleton extends StatelessWidget {
+  const _DashboardSkeleton();
 
   @override Widget build(BuildContext context) {
-    final c = Theme.of(context).colorScheme;
-    final balance = financial.totalBalance / 100;
-    final income = financial.totalIncome / 100;
-    final expense = financial.totalExpense / 100;
-    final net = financial.netWorth / 100;
-
-    return Card(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [c.primaryContainer, c.primaryContainer.withValues(alpha: 0.4)],
-            begin: Alignment.topLeft, end: Alignment.bottomRight,
+    return ListView(
+      padding: const EdgeInsets.all(DesignTokens.space16),
+      children: List.generate(5, (_) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Card(
+          child: SizedBox(
+            height: 100,
+            child: Center(
+              child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
+            ),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(DesignTokens.space20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Text('Total Balance', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: c.onPrimaryContainer)),
-              const Spacer(),
-              Icon(Icons.visibility_outlined, size: 18, color: c.onPrimaryContainer),
-            ]),
-            const SizedBox(height: DesignTokens.space8),
-            AnimatedCounter(value: balance, style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: c.onPrimaryContainer)),
-            const SizedBox(height: DesignTokens.space16),
-            Row(children: [
-              _miniStat(context, 'Income', income, DesignTokens.income, Icons.arrow_circle_up),
-              const SizedBox(width: DesignTokens.space12),
-              _miniStat(context, 'Expense', expense, DesignTokens.expense, Icons.arrow_circle_down),
-              const SizedBox(width: DesignTokens.space12),
-              _miniStat(context, 'Net Worth', net, net >= 0 ? DesignTokens.income : DesignTokens.expense, Icons.account_balance_wallet),
-            ]),
-            const SizedBox(height: DesignTokens.space12),
-            Row(children: [
-              Text('${financial.accountCount} account${financial.accountCount == 1 ? '' : 's'}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: c.onPrimaryContainer.withValues(alpha: 0.7))),
-              const SizedBox(width: DesignTokens.space8),
-              Text('${financial.pendingPaymentCount} pending',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: DesignTokens.warning)),
-            ]),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _miniStat(BuildContext context, String label, double amount, Color color, IconData icon) {
-    return Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
-        Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color)),
-      ]),
-      const SizedBox(height: 2),
-      Text('\$${amount.toStringAsFixed(0)}', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: color)),
-    ]));
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Quick Actions (Section 3)
-// ---------------------------------------------------------------------------
-
-class _QuickActionsBar extends StatelessWidget {
-  @override Widget build(BuildContext context) {
-    return Column(children: [
-      Row(children: [
-        Expanded(child: _QABtn(context, Icons.arrow_circle_up, 'Income', DesignTokens.income, () {})),
-        const SizedBox(width: DesignTokens.space8),
-        Expanded(child: _QABtn(context, Icons.arrow_circle_down, 'Expense', DesignTokens.expense, () {})),
-        const SizedBox(width: DesignTokens.space8),
-        Expanded(child: _QABtn(context, Icons.swap_horiz, 'Transfer', Colors.blue.shade600, () {})),
-      ]),
-      const SizedBox(height: DesignTokens.space8),
-      Row(children: [
-        Expanded(child: _QABtn(context, Icons.person_add, 'Person', Colors.purple.shade600, () {})),
-        const SizedBox(width: DesignTokens.space8),
-        Expanded(child: _QABtn(context, Icons.receipt_long, 'Payment', Colors.teal.shade600, () {})),
-        const SizedBox(width: DesignTokens.space8),
-        Expanded(child: _QABtn(context, Icons.more_horiz, 'More', Colors.grey.shade600, () {})),
-      ]),
-    ]);
-  }
-
-  Widget _QABtn(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
-    final s = MediaQuery.of(context).size;
-    final pad = s.width > 600 ? 16.0 : 8.0;
-    return Semantics(button: true, label: label, child: InkWell(
-      borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 64),
-        padding: EdgeInsets.symmetric(horizontal: pad, vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
-          border: Border.all(color: color.withValues(alpha: 0.15)),
-        ),
-        child: Row(children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
-        ]),
-      ),
-    ));
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Insights (Section 8 — feeds into Section 6 chart area)
-// ---------------------------------------------------------------------------
-
-class _InsightsRow extends StatelessWidget {
-  const _InsightsRow({required this.financial, required this.month});
-  final FinancialSnapshot financial;
-  final List<MonthlySummary> month;
-
-  @override Widget build(BuildContext context) {
-    final current = month.isNotEmpty ? month.last : null;
-    final previous = month.length > 1 ? month[month.length - 2] : null;
-
-    String? insight;
-    if (current != null && previous != null && previous.totalExpense > 0) {
-      final diff = ((current.totalExpense - previous.totalExpense) / previous.totalExpense * 100);
-      insight = diff > 0
-          ? 'Spending up ${diff.round()}% vs last month'
-          : 'Spending down ${diff.abs().round()}% vs last month 🎉';
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      if (insight != null)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(DesignTokens.space12),
-          decoration: BoxDecoration(
-            color: DesignTokens.info.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
-            border: Border.all(color: DesignTokens.info.withValues(alpha: 0.2)),
-          ),
-          child: Row(children: [
-            Icon(PaysaIcons.info, size: 18, color: DesignTokens.info),
-            const SizedBox(width: 8),
-            Expanded(child: Text(insight, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500))),
-          ]),
-        ),
-    ]);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Cash Flow + Outstanding cards (Sections 4 + 5)
-// ---------------------------------------------------------------------------
-
-class _CashFlowCard extends StatelessWidget {
-  const _CashFlowCard({required this.cashFlowAsync});
-  final AsyncValue<CashFlowSummary> cashFlowAsync;
-
-  @override Widget build(BuildContext context) {
-    return cashFlowAsync.when(
-      loading: () => _miniCard(context, 'Cash Flow', '---', Icons.trending_up, Colors.blue),
-      error: (_, __) => _miniCard(context, 'Cash Flow', 'Error', Icons.error, Colors.red),
-      data: (c) => _miniCard(context, 'Cash Flow', '\$${(c.netCashFlow / 100).toStringAsFixed(0)}',
-        c.netCashFlow >= 0 ? Icons.trending_up : Icons.trending_down,
-        c.netCashFlow >= 0 ? DesignTokens.income : DesignTokens.expense,
-        subtitle: '${c.transactionCount} txns'),
-    );
-  }
-}
-
-class _OutstandingCard extends StatelessWidget {
-  const _OutstandingCard({required this.outstandingAsync});
-  final AsyncValue<OutstandingSummary> outstandingAsync;
-
-  @override Widget build(BuildContext context) {
-    return outstandingAsync.when(
-      loading: () => _miniCard(context, 'Outstanding', '---', Icons.people, Colors.teal),
-      error: (_, __) => _miniCard(context, 'Outstanding', 'Error', Icons.error, Colors.red),
-      data: (o) => _miniCard(context, 'Outstanding', '\$${(o.netOutstanding / 100).toStringAsFixed(0)}',
-        o.netOutstanding >= 0 ? Icons.trending_up : Icons.trending_down,
-        o.netOutstanding >= 0 ? DesignTokens.income : DesignTokens.expense,
-        subtitle: '${o.personCount} people'),
-    );
-  }
-}
-
-Widget _miniCard(BuildContext context, String label, String value, IconData icon, Color color, {String? subtitle}) {
-  return Card(child: Padding(
-    padding: const EdgeInsets.all(DesignTokens.space16),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 6),
-        Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      ]),
-      const SizedBox(height: DesignTokens.space8),
-      Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color)),
-      if (subtitle != null) ...[
-        const SizedBox(height: 2),
-        Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      ],
-    ]),
-  ));
-}
-
-// ---------------------------------------------------------------------------
-// Recent Activity (Section 7)
-// ---------------------------------------------------------------------------
-
-class _RecentActivity extends StatelessWidget {
-  const _RecentActivity({required this.txs, required this.receipts});
-  final List<TransactionSummary> txs;
-  final List<ReceiptSummary> receipts;
-
-  @override Widget build(BuildContext context) {
-    final items = <_ActivityItem>[];
-    for (final t in txs) {
-      items.add(_ActivityItem(
-        icon: t.type == 'Income' ? PaysaIcons.income : PaysaIcons.expense,
-        color: t.type == 'Income' ? DesignTokens.income : DesignTokens.expense,
-        title: t.description.isNotEmpty ? t.description : t.type,
-        subtitle: '${t.date.day}/${t.date.month}',
-        trailing: '\$${(t.amount / 100).toStringAsFixed(2)}',
-      ));
-    }
-    for (final r in receipts) {
-      items.add(_ActivityItem(
-        icon: PaysaIcons.receipt, color: Colors.teal,
-        title: r.receiptNumber, subtitle: r.provider,
-        trailing: '\$${(r.amountMinor / 100).toStringAsFixed(2)}',
-      ));
-    }
-    items.sort((a, b) => b.subtitle.compareTo(a.subtitle));
-    final display = items.take(6).toList();
-
-    if (display.isEmpty) return const EmptyCard(message: 'No recent activity');
-    return Column(children: display);
-  }
-}
-
-class _ActivityItem extends StatelessWidget {
-  const _ActivityItem({required this.icon, required this.color, required this.title, required this.subtitle, required this.trailing});
-  final IconData icon; final Color color; final String title; final String subtitle; final String trailing;
-
-  @override Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tt = theme.textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: DesignTokens.space8),
-      child: Card(margin: EdgeInsets.zero, child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: DesignTokens.space16, vertical: DesignTokens.space12),
-        child: Row(children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 18, color: color)),
-          const SizedBox(width: DesignTokens.space12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: tt.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(subtitle, style: tt.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          ])),
-          Text(trailing, style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-        ]),
       )),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Top Categories (Section 6 partial)
+// Balance card with gradient
 // ---------------------------------------------------------------------------
 
-class _TopCategories extends StatelessWidget {
-  const _TopCategories({required this.dash});
-  final DashboardSnapshot dash;
+class _BalanceCard extends StatelessWidget {
+  const _BalanceCard({required this.financial, required this.pc});
+  final FinancialSnapshot financial;
+  final PaysaColors pc;
 
   @override Widget build(BuildContext context) {
-    final cats = dash.topCategories;
-    if (cats.isEmpty) return const EmptyCard(message: 'No spending data this month');
-    return Column(children: cats.map((c) => Padding(
-      padding: const EdgeInsets.only(bottom: DesignTokens.space8),
-      child: _CategoryRow(category: c),
-    )).toList());
+    final c = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final balance = financial.totalBalance / 100;
+    final income = financial.totalIncome / 100;
+    final expense = financial.totalExpense / 100;
+
+    return Card(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [c.primaryContainer, c.primaryContainer.withValues(alpha: 0.3)],
+            begin: Alignment.topLeft, end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(DesignTokens.space20),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Total Balance', style: tt.labelLarge?.copyWith(color: c.onPrimaryContainer)),
+            gap8,
+            Text('\$${balance.toStringAsFixed(2)}',
+              style: tt.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: c.onPrimaryContainer)),
+            gap16,
+            Row(children: [
+              _miniStat(tt, 'Income', '\$${income.toStringAsFixed(0)}', pc.income),
+              gap12,
+              _miniStat(tt, 'Expense', '\$${expense.toStringAsFixed(0)}', pc.expense),
+              gap12,
+              _miniStat(tt, 'Accounts', '${financial.accountCount}', c.onPrimaryContainer),
+            ]),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _miniStat(TextTheme tt, String label, String value, Color color) {
+    return Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: tt.labelSmall?.copyWith(color: color)),
+      Text(value, style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: color)),
+    ]));
   }
 }
 
-class _CategoryRow extends StatelessWidget {
-  const _CategoryRow({required this.category});
-  final CategorySummary category;
+// ---------------------------------------------------------------------------
+// Quick actions grid
+// ---------------------------------------------------------------------------
+
+class _QuickActionsGrid extends StatelessWidget {
+  @override Widget build(BuildContext context) {
+    return Column(children: [
+      Row(children: [
+        Expanded(child: _qaBtn(context, Icons.arrow_circle_up, 'Income', DesignTokens.income)),
+        gap12,
+        Expanded(child: _qaBtn(context, Icons.arrow_circle_down, 'Expense', DesignTokens.expense)),
+        gap12,
+        Expanded(child: _qaBtn(context, Icons.swap_horiz, 'Transfer', Colors.blue)),
+      ]),
+      gap8,
+      Row(children: [
+        Expanded(child: _qaBtn(context, Icons.receipt_long_outlined, 'Payment', Colors.teal)),
+        gap12,
+        Expanded(child: _qaBtn(context, Icons.people_outlined, 'Person', Colors.purple)),
+        gap12,
+        Expanded(child: _qaBtn(context, Icons.more_horiz, 'More', Colors.grey)),
+      ]),
+    ]);
+  }
+
+  Widget _qaBtn(BuildContext context, IconData icon, String label, Color color) {
+    return Semantics(button: true, label: label, child: InkWell(
+      borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
+      onTap: () {},
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 64),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
+          border: Border.all(color: color.withValues(alpha: 0.15)),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, color: color, size: 20),
+          Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+        ]),
+      ),
+    ));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Insight tile
+// ---------------------------------------------------------------------------
+
+class _InsightTile extends StatelessWidget {
+  const _InsightTile({required this.financial, required this.months, required this.pc, required this.tt});
+  final FinancialSnapshot financial;
+  final List<MonthlySummary> months;
+  final PaysaColors pc;
+  final TextTheme tt;
 
   @override Widget build(BuildContext context) {
-    final t = Theme.of(context);
-    final theme = Theme.of(context);
-    final tt = theme.textTheme;
-    return Card(margin: EdgeInsets.zero, child: Padding(
+    final current = months.isNotEmpty ? months.last : null;
+    final previous = months.length > 1 ? months[months.length - 2] : null;
+    String msg = '';
+    if (current != null && previous != null && previous.totalExpense > 0) {
+      final diff = ((current.totalExpense - previous.totalExpense) / previous.totalExpense * 100).round();
+      msg = diff > 0 ? 'Spending up $diff% vs last month' : 'Spending down ${diff.abs()}% vs last month';
+    }
+    if (msg.isEmpty) return const SizedBox.shrink();
+
+    return Container(
       padding: const EdgeInsets.all(DesignTokens.space12),
+      decoration: BoxDecoration(
+        color: DesignTokens.info.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
+        border: Border.all(color: DesignTokens.info.withValues(alpha: 0.2)),
+      ),
+      child: Row(children: [
+        Icon(Icons.info_outline, size: 18, color: DesignTokens.info),
+        gap12,
+        Expanded(child: Text(msg, style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w500))),
+      ]),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cash flow + outstanding mini cards
+// ---------------------------------------------------------------------------
+
+class _MiniSummaryRow extends StatelessWidget {
+  const _MiniSummaryRow({required this.cfAsync, required this.outstandingAsync, required this.pc, required this.tt});
+  final AsyncValue<CashFlowSummary> cfAsync;
+  final AsyncValue<OutstandingSummary> outstandingAsync;
+  final PaysaColors pc;
+  final TextTheme tt;
+
+  @override Widget build(BuildContext context) {
+    return Row(children: [
+      Expanded(child: _miniCard(context, 'Cash Flow', cfAsync.when(
+        loading: () => '...',
+        error: (_, __) => 'Error',
+        data: (c) => '\$${(c.netCashFlow / 100).toStringAsFixed(0)}',
+      ), pc.income, tt)),
+      gap12,
+      Expanded(child: _miniCard(context, 'Outstanding', outstandingAsync.when(
+        loading: () => '...',
+        error: (_, __) => 'Error',
+        data: (o) => '\$${(o.netOutstanding / 100).toStringAsFixed(0)}',
+      ), pc.receivable, tt)),
+    ]);
+  }
+
+  Widget _miniCard(BuildContext context, String label, String value, Color color, TextTheme tt) {
+    return Card(child: Padding(
+      padding: const EdgeInsets.all(DesignTokens.space16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(child: Text(category.categoryName, style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w500))),
-          Text('\$${(category.totalAmount / 100).toStringAsFixed(2)}', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-        ]),
-        const SizedBox(height: DesignTokens.space4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: category.percentage / 100,
-            minHeight: 6,
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          ),
-        ),
-        const SizedBox(height: DesignTokens.space2),
-        Text('${category.percentage.toStringAsFixed(0)}% · ${category.transactionCount} txns',
-          style: tt.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        Text(label, style: tt.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        gap8,
+        Text(value, style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color)),
       ]),
     ));
   }
 }
 
 // ---------------------------------------------------------------------------
-// Section Title helper
+// Recent section
 // ---------------------------------------------------------------------------
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, this.subtitle});
-  final String title; final String? subtitle;
+class _RecentSection extends StatelessWidget {
+  const _RecentSection({required this.title, required this.transactions, required this.receipts, required this.tt, required this.pc});
+  final String title;
+  final List<TransactionSummary> transactions;
+  final List<ReceiptSummary> receipts;
+  final TextTheme tt;
+  final PaysaColors pc;
 
   @override Widget build(BuildContext context) {
+    final items = <_ActivityItem>[];
+    for (final t in transactions) {
+      items.add(_ActivityItem(
+        icon: t.type == 'Income' ? Icons.arrow_circle_up : Icons.arrow_circle_down,
+        color: t.type == 'Income' ? pc.income : pc.expense,
+        title: t.description.isNotEmpty ? t.description : t.type,
+        subtitle: '${t.date.day}/${t.date.month}',
+        trailing: '\$${(t.amount / 100).toStringAsFixed(2)}',
+      ));
+    }
+    if (items.isEmpty) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        gap12,
+        Card(child: Padding(padding: const EdgeInsets.all(24), child: Center(
+          child: Text('No activity yet', style: tt.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        ))),
+      ]);
+    }
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-      if (subtitle != null) ...[const SizedBox(height: 2), Text(subtitle!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant))],
+      Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+      gap12,
+      ...items.take(5).map((item) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: _activityRow(context, item, tt),
+      )),
     ]);
   }
 }
 
-// ---------------------------------------------------------------------------
-// Animated Counter
-// ---------------------------------------------------------------------------
-
-class AnimatedCounter extends StatefulWidget {
-  const AnimatedCounter({super.key, required this.value, this.style});
-  final double value; final TextStyle? style;
-  @override State<AnimatedCounter> createState() => _AnimatedCounterState();
+class _ActivityItem {
+  const _ActivityItem({required this.icon, required this.color, required this.title, required this.subtitle, required this.trailing});
+  final IconData icon; final Color color; final String title; final String subtitle; final String trailing;
 }
 
-class _AnimatedCounterState extends State<AnimatedCounter> with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _anim;
-  double _display = 0;
+Widget _activityRow(BuildContext context, _ActivityItem item, TextTheme tt) {
+  return Card(margin: EdgeInsets.zero, child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: DesignTokens.space16, vertical: DesignTokens.space12),
+    child: Row(children: [
+      Container(padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: item.color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+        child: Icon(item.icon, size: 18, color: item.color)),
+      gap12,
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(item.title, style: tt.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+        Text(item.subtitle, style: tt.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      ])),
+      Text(item.trailing, style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+    ]),
+  ));
+}
 
-  @override void initState() { super.initState();
-    _ctrl = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
-    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
-    _ctrl.addListener(() { setState(() => _display = _anim.value * widget.value); });
-    _ctrl.forward();
-  }
+// ---------------------------------------------------------------------------
+// Categories section
+// ---------------------------------------------------------------------------
 
-  @override void didUpdateWidget(AnimatedCounter old) {
-    if (old.value != widget.value) {
-      _display = 0;
-      _ctrl.reset();
-      _ctrl.forward();
-    }
-    super.didUpdateWidget(old);
-  }
-
-  @override void dispose() { _ctrl.dispose(); super.dispose(); }
+class _CategoriesSection extends StatelessWidget {
+  const _CategoriesSection({required this.categories, required this.tt, required this.pc});
+  final List<CategorySummary> categories;
+  final TextTheme tt;
+  final PaysaColors pc;
 
   @override Widget build(BuildContext context) {
-    return Text('\$${_display.toStringAsFixed(2)}', style: widget.style);
+    if (categories.isEmpty) return const SizedBox.shrink();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Top Categories', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+      gap12,
+      ...categories.map((c) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: _categoryRow(context, c, tt),
+      )),
+    ]);
   }
 }
+
+Widget _categoryRow(BuildContext context, CategorySummary cat, TextTheme tt) {
+  return Card(margin: EdgeInsets.zero, child: Padding(
+    padding: const EdgeInsets.all(DesignTokens.space12),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Expanded(child: Text(cat.categoryName, style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w500))),
+        Text('\$${(cat.totalAmount / 100).toStringAsFixed(2)}', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+      ]),
+      gap4,
+      ClipRRect(borderRadius: BorderRadius.circular(4),
+        child: LinearProgressIndicator(value: cat.percentage / 100, minHeight: 6,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest)),
+      gap4,
+      Text('${cat.percentage.toStringAsFixed(0)}% · ${cat.transactionCount} txns',
+        style: tt.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    ]),
+  ));
+}
+

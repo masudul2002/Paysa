@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_colors.dart';
 import 'design_tokens.dart';
 
 final class AppTheme {
@@ -54,6 +55,15 @@ final class AppTheme {
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignTokens.radiusFull)),
       ),
+      extensions: [
+        PaysaColors(
+          income: DesignTokens.income,
+          expense: DesignTokens.expense,
+          pending: DesignTokens.pending,
+          receivable: DesignTokens.receivable,
+          payable: DesignTokens.payable,
+        ),
+      ],
     );
   }
 }

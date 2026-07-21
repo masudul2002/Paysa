@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../splash_screen.dart';
+import '../onboarding/onboarding_screen.dart';
 import '../app_shell.dart';
 import '../dashboard_page.dart';
 import '../accounts_page.dart';
@@ -18,6 +19,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.splash.path,
         name: AppRoute.splash.name,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.onboarding.path,
+        name: AppRoute.onboarding.name,
+        builder: (context, state) => const OnboardingScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
@@ -60,6 +66,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 enum AppRoute {
   splash('/splash'),
+  onboarding('/onboarding'),
   dashboard('/home'),
   accounts('/accounts'),
   people('/people'),
